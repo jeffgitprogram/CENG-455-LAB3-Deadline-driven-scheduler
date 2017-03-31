@@ -41,11 +41,11 @@
 #include "fsl_hwtimer1.h"
 #include "MainTask.h"
 #include "DDSTask.h"
-#include "HandlerTask.h"
 #include "GeneratorTask.h"
 #include "UserTask.h"
 #include "IdleTask.h"
 #include "myUART.h"
+#include "gpio1.h"
 #if CPU_INIT_CONFIG
   #include "Init_Config.h"
 #endif

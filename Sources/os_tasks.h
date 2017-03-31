@@ -44,22 +44,52 @@
 #include "fsl_hwtimer1.h"
 #include "MainTask.h"
 #include "DDSTask.h"
-#include "HandlerTask.h"
 #include "GeneratorTask.h"
 #include "UserTask.h"
 #include "IdleTask.h"
 #include "myUART.h"
+#include "gpio1.h"
 #include "message.h"
 #include "dd_functions.h"
+#include "utility.h"
+#include "linklist.h"
 
+/*Globe Value*/
+extern _pool_id schedule_message_pool;
+extern long user_task_runtime;
+extern long idle_task_runtime;
+extern int successful_task;
 /* Message Queue */
 #define SCHEDULER_MESSAGE_QUEUE 8
-
+#define DD_CREATE_QUEUE		9
+#define DD_ACTIVE_REQUEST_QUEUE 10
+#define DD_OVERDUE_REQUEST_QUEUE 11
+//#define WAIT_BLOCKED 0x3
+#define MONITOR_WORKTIME 120
 /* Message Pool */
+/*=========================================================
+ *
+ * DATA[0]: information type - 1:create new task
+ * 							 - 2:task complete/overdue
+ * 							 - 3:request active tasks
+ * 							 - 4:request inactive tasks
+ *
+ *DATA[1]: Task ID
+ *DATA[2]: Deadline
+ *DATA[3]: Task Type		 - 1:Periodic
+ *							 - 2:Aperiodic
+ *DATA[4]: Task Creation Confirmation -1:success
+ 	 	 	 	 	 	 	 	 	  -0:fail
+
+ *=========================================================*/
+
 typedef struct schedule_message {
 	MESSAGE_HEADER_STRUCT 	HEADER;
-	unsigned char 			DATA[32];
+	uint32_t 				DATA[32];
+	ListNode*               tlist;
 } SCHEDULE_MESSAGE, *SCHEDULE_MESSAGE_PTR;
+
+
 
 /*Task Link list, maintained by */
 typedef struct task_list {
@@ -79,6 +109,7 @@ typedef struct overdue_tasks {
 	struct overdue_tasks *next_cell;
 	struct overdue_tasks *previous_cell;
 } OVERDUE_TASKS, *OVERDUE_TASKS_PTR;
+
 
 
 #ifdef __cplusplus
